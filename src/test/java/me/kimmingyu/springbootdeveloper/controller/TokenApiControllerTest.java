@@ -20,43 +20,56 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+
 import java.util.Map;
 
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TokenApiControllerTest {
+class TokenApiControllerTest {
+
     @Autowired
     protected MockMvc mockMvc;
+
     @Autowired
     protected ObjectMapper objectMapper;
+
     @Autowired
     private WebApplicationContext context;
+
     @Autowired
     JwtProperties jwtProperties;
+
     @Autowired
     UserRepository userRepository;
+
     @Autowired
     RefreshTokenRepository refreshTokenRepository;
 
     @BeforeEach
-    public void mockMvcSetUp(){
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    public void mockMvcSetUp() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+                .build();
         userRepository.deleteAll();
     }
 
     @DisplayName("createNewAccessToken: 새로운 액세스 토큰을 발급한다.")
     @Test
-    public void createNewAccessToken() throws Exception{
-        //given
+    public void createNewAccessToken() throws Exception {
+        // given
         final String url = "/api/token";
 
-        User testUser = userRepository.save(User.builder().email("user@gmail.com").password("test").build());
+        User testUser = userRepository.save(User.builder()
+                .email("user@gmail.com")
+                .password("test")
+                .build());
 
-        String refreshToken = JwtFactory.builder().claims(Map.of("id", testUser.getId()))
+        String refreshToken = JwtFactory.builder()
+                .claims(Map.of("id", testUser.getId()))
                 .build()
                 .createToken(jwtProperties);
 
@@ -64,15 +77,17 @@ public class TokenApiControllerTest {
 
         CreateAccessTokenRequest request = new CreateAccessTokenRequest();
         request.setRefreshToken(refreshToken);
-        final String requestbody = objectMapper.writeValueAsString(request);
-        //when
+        final String requestBody = objectMapper.writeValueAsString(request);
+
+        // when
         ResultActions resultActions = mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(requestbody));
+                .content(requestBody));
 
-        //then
+        // then
         resultActions
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
+
 }

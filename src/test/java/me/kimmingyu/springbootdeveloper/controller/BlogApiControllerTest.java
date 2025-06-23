@@ -12,11 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.security.Principal;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -47,6 +49,7 @@ class BlogApiControllerTest {
 
     }
 
+    @WithMockUser("user1")
     @DisplayName("addArticle: 블로그 글 추가에 성공한다.")
     @Test
     void addArticle() throws Exception {
@@ -58,9 +61,12 @@ class BlogApiControllerTest {
 
         final String requestBody = objectMapper.writeValueAsString(userRequest);
 
+        Principal principal = () -> "user1";
+
         //when
         //설정한 내용을 바탕으로 요청 전송
         ResultActions result = mockMvc.perform(post(url)
+                        .principal(principal)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(requestBody));
 
@@ -71,6 +77,7 @@ class BlogApiControllerTest {
         assertThat(articles.size()).isEqualTo(1);
         assertThat(articles.get(0).getTitle()).isEqualTo(title);
         assertThat(articles.get(0).getContent()).isEqualTo(content);
+        assertThat(articles.get(0).getAuthor()).isEqualTo("user1");
     }
 
     @DisplayName("findAllArticles: 블로그 글 목록 조회에 성공한다.")
@@ -80,8 +87,9 @@ class BlogApiControllerTest {
         final String url = "/api/articles";
         final String title = "title";
         final String content = "content";
+        final String author = "user1";
 
-        blogRepository.save(Article.builder().title(title).content(content).build());
+        blogRepository.save(Article.builder().title(title).author(author).content(content).build());
 
         //when
         final ResultActions resultActions = mockMvc.perform(get(url).accept(MediaType.APPLICATION_JSON));
@@ -89,10 +97,12 @@ class BlogApiControllerTest {
         //then
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].content").value(content))
-                .andExpect(jsonPath("$[0].title").value(title));
+                .andExpect(jsonPath("$[0].title").value(title))
+                .andExpect(jsonPath("$[0].author").value(author));
 
     }
 
+    @WithMockUser("user1")
     @DisplayName("findArticle: 블로그 글 조회에 성공한다.")
     @Test
     public void findArticle() throws Exception{
@@ -104,6 +114,7 @@ class BlogApiControllerTest {
         Article savedArticle = blogRepository.save(Article.builder()
                 .title(title)
                 .content(content)
+                        .author("user1")
                 .build());
         //when
         final ResultActions resultActions = mockMvc.perform(get(url, savedArticle.getId()));
@@ -114,6 +125,7 @@ class BlogApiControllerTest {
                 .andExpect(jsonPath("$.content").value(content));
     }
 
+    @WithMockUser("user1")
     @DisplayName("deleteArticle: 블로그 글 삭제에 성공한다.")
     @Test
     public void deleteArticle() throws Exception {
@@ -121,8 +133,9 @@ class BlogApiControllerTest {
         final String url = "/api/articles/{id}";
         final String title = "title";
         final String content = "content";
+        final String author = "user1";
 
-        Article savedArticle = blogRepository.save(Article.builder().content(content).title(title).build());
+        Article savedArticle = blogRepository.save(Article.builder().author(author).content(content).title(title).build());
 
         //when
         mockMvc.perform(delete(url, savedArticle.getId())).andExpect(status().isOk());
@@ -133,6 +146,7 @@ class BlogApiControllerTest {
         assertThat(articles).isEmpty();
     }
 
+    @WithMockUser("user1")
     @DisplayName("updateArticle: 블로그 글 수정에 성공한다.")
     @Test
     public void updateArticle() throws Exception {
@@ -141,7 +155,7 @@ class BlogApiControllerTest {
         final String title = "title";
         final String content = "content";
 
-        Article savedArticle = blogRepository.save(Article.builder().content(content).title(title).build());
+        Article savedArticle = blogRepository.save(Article.builder().content(content).title(title).author("user1").build());
 
         final String newTitle = "new Title";
         final String newContent = "new Content";
