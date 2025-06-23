@@ -1,3 +1,3 @@
-INSERT INTO ARTICLE (TITLE, CONTENT, AUTHOR ,CREATED_AT,  UPDATED_AT) VALUES ('제목 1','내용 1', 'user1',now(), now());
-INSERT INTO ARTICLE (TITLE, CONTENT, AUTHOR ,CREATED_AT,  UPDATED_AT) VALUES ('제목 2','내용 2', 'user2',now(), now());
-INSERT INTO ARTICLE (TITLE, CONTENT, AUTHOR ,CREATED_AT, UPDATED_AT) VALUES ('제목 3','내용 3', 'user3',now(), now());
+INSERT INTO ARTICLE (TITLE, CONTENT, AUTHOR ,CREATED_AT,  UPDATED_AT) VALUES ('제목 1','내용 1', 'user1',current_timestamp , current_timestamp );
+INSERT INTO ARTICLE (TITLE, CONTENT, AUTHOR ,CREATED_AT,  UPDATED_AT) VALUES ('제목 2','내용 2', 'user2',current_timestamp, current_timestamp);
+INSERT INTO ARTICLE (TITLE, CONTENT, AUTHOR ,CREATED_AT, UPDATED_AT) VALUES ('제목 3','내용 3', 'user3',current_timestamp, current_timestamp);
